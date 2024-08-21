@@ -1,0 +1,115 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  first_name    String
+  last_name     String
+  profile_name  String
+  profile_image String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  Post         Post[]
+  Comment      Comment[]
+  Like         Like[]
+  Notification Notification[]
+  Save         Save[]
+  follower     Follow[]       @relation("following")
+  following    Follow[]       @relation("follower")
+}
+
+model Follow {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  follower     User     @relation("follower", fields: [follower_id], references: [id])
+  follower_id  String   @db.ObjectId
+  following    User     @relation("following", fields: [following_id], references: [id])
+  following_id String   @db.ObjectId
+  createdAt    DateTime @default(now())
+  userId       String?  @db.ObjectId
+}
+
+model Post {
+  id                 String   @id @default(auto()) @map("_id") @db.ObjectId
+  created_by_user    User     @relation(fields: [created_by_user_id], references: [id])
+  created_by_user_id String   @db.ObjectId
+  caption            String
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  Post_Media   Post_Media[]
+  Post_Type    Post_Type[]
+  Comment      Comment[]
+  Like         Like[]
+  Notification Notification[]
+  Save         Save[]
+}
+
+model Comment {
+  id                 String   @id @default(auto()) @map("_id") @db.ObjectId
+  created_by_user    User     @relation(fields: [created_by_user_id], references: [id])
+  created_by_user_id String   @db.ObjectId
+  media              Post     @relation(fields: [media_id], references: [id])
+  media_id           String   @db.ObjectId
+  comment            String
+  createdAt          DateTime @default(now())
+}
+
+model Post_Media {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  media      Post     @relation(fields: [media_id], references: [id])
+  media_id   String   @db.ObjectId
+  media_file String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Post_Type {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  post_type      Post     @relation(fields: [post_type_name], references: [id])
+  post_type_name String   @db.ObjectId
+  extension      String
+  createdAt      DateTime @default(now())
+}
+
+model Like {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  user      User     @relation(fields: [user_id], references: [id])
+  user_id   String   @db.ObjectId
+  post      Post     @relation(fields: [post_id], references: [id])
+  post_id   String   @db.ObjectId
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Notification {
+  id        String           @id @default(auto()) @map("_id") @db.ObjectId
+  user      User             @relation(fields: [user_id], references: [id])
+  user_id   String           @db.ObjectId
+  type      NotificationType
+  post      Post             @relation(fields: [post_id], references: [id])
+  post_id   String           @db.ObjectId
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+}
+
+model Save {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  user      User     @relation(fields: [user_id], references: [id])
+  user_id   String   @db.ObjectId
+  post      Post     @relation(fields: [post_id], references: [id])
+  post_id   String   @db.ObjectId
+  createdAt DateTime @default(now())
+}
+
+enum NotificationType {
+  LIKE
+  COMMENT
+  FOLLOW
+}
